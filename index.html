@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 40px 20px;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            color: #222;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 30px;
+            background: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .form-container h2 {
+            margin: 0 0 25px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            height: 44px;
+            padding: 0 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #555;
+        }
+
+        .submit-btn {
+            width: 100%;
+            height: 46px;
+            border: none;
+            border-radius: 5px;
+            background: #222;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background: #333;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+        }
+
+        .submit-btn.loading .spinner {
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 400px;
+            padding: 35px 25px;
+            background: #fff;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        /* Green Check */
+        .success-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            background: #22c55e;
+            color: #fff;
+            font-size: 35px;
+            line-height: 60px;
+        }
+
+        .modal-box h3 {
+            margin: 0 0 10px;
+        }
+
+        .modal-message {
+            margin: 0 0 20px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .close-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            background: #222;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .error-message {
+            display: none;
+            margin-bottom: 18px;
+            padding: 10px;
+            border-radius: 5px;
+            background: #fee2e2;
+            color: #b91c1c;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-container">
+
+        <h2>Registration Form</h2>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <form id="registrationForm">
+
+            <div class="form-group">
+                <label for="fullname">Full Name</label>
+                <input type="text" id="fullname" name="fullname" placeholder="Enter your full name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" id="age" name="age" placeholder="Enter your age" min="1" max="120" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" required>
+            </div>
+
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender" required>
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+
+            <button type="submit" id="submitBtn" class="submit-btn">
+                <span class="spinner"></span>
+                <span class="btn-text">Submit</span>
+            </button>
+
+        </form>
+    </div>
+
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+
+        <div class="modal-box">
+
+            <div class="success-icon">
+                ✓
+            </div>
+
+            <h3>Success</h3>
+
+            <p id="successMessage" class="modal-message">
+                Your form has been submitted successfully.
+            </p>
+
+            <button type="button" id="closeModal" class="close-btn">
+                Close
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        // ============================================
+        // YOUR N8N WEBHOOK URL
+        // ============================================
+
+        const WEBHOOK_URL = "paste your webhook URL";
+
+
+        const form = document.getElementById("registrationForm");
+        const submitBtn = document.getElementById("submitBtn");
+        const btnText = submitBtn.querySelector(".btn-text");
+
+        const successModal = document.getElementById("successModal");
+        const successMessage = document.getElementById("successMessage");
+
+        const errorMessage = document.getElementById("errorMessage");
+        const closeModal = document.getElementById("closeModal");
+
+
+        // ============================================
+        // FORM SUBMIT
+        // ============================================
+
+        form.addEventListener("submit", async function (event) {
+
+            event.preventDefault();
+
+            // Hide previous error
+            errorMessage.style.display = "none";
+            errorMessage.textContent = "";
+
+            // Loading state
+            submitBtn.disabled = true;
+            submitBtn.classList.add("loading");
+            btnText.textContent = "Submitting...";
+
+
+            // Get form data
+            const formData = {
+                fullname: document.getElementById("fullname").value.trim(),
+                email: document.getElementById("email").value.trim(),
+                age: Number(document.getElementById("age").value),
+                phone: document.getElementById("phone").value.trim(),
+                gender: document.getElementById("gender").value
+            };
+
+
+            try {
+
+                // Send POST request to n8n
+                const response = await fetch(WEBHOOK_URL, {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify(formData)
+
+                });
+
+
+                // Check HTTP response
+                if (!response.ok) {
+                    throw new Error(
+                        `Request failed with status ${response.status}`
+                    );
+                }
+
+
+                // Get n8n response
+                const result = await response.json();
+
+
+                // --------------------------------------------
+                // SUCCESS
+                // --------------------------------------------
+
+                /*
+                    Expected n8n response example:
+
+                    {
+                        "message": "Registration successful!"
+                    }
+
+                    Agar n8n response mein "message" nahi hai
+                    to default message show hoga.
+                */
+
+                successMessage.textContent =
+                    result.message ||
+                    "Your form has been submitted successfully.";
+
+
+                // Show success modal
+                successModal.classList.add("show");
+
+
+                // Reset form
+                form.reset();
+
+
+            } catch (error) {
+
+                console.error("Submission Error:", error);
+
+
+                // Show error
+                errorMessage.textContent =
+                    "Something went wrong. Please try again.";
+
+                errorMessage.style.display = "block";
+
+
+            } finally {
+
+                // Remove loading state
+                submitBtn.disabled = false;
+                submitBtn.classList.remove("loading");
+                btnText.textContent = "Submit";
+
+            }
+
+        });
+
+
+        // ============================================
+        // CLOSE SUCCESS MODAL
+        // ============================================
+
+        closeModal.addEventListener("click", function () {
+            successModal.classList.remove("show");
+        });
+
+
+        // Close modal when clicking outside the box
+        successModal.addEventListener("click", function (event) {
+
+            if (event.target === successModal) {
+                successModal.classList.remove("show");
+            }
+
+        });
+
+    </script>
+
+</body>
+
+</html>
